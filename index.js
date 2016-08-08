@@ -1,31 +1,33 @@
-// wait returns a function that waits on the given context and runs functions.
-function wait(context){
-	return function(func){
-		// We wouldn't want to process an undefined/non function.
+class Pipe{
+	constructor(promiseFunc, options){
+		this.options = options;
+		this.current = 0;
+		this.waiting = [];
+		this.promiseFunc = promiseFunc;	
+	}
+
+	// wait waits until it can run a function and then runs it.
+	wait(func){
 		if(!func || func.constructor != Function) return false;
-		let { current, concurrency } = context.options;
+		let { concurrency } = this.options;
 
 		// If we don't need to wait...
-		if(!concurrency || concurrency == -1 || (current || 0) < concurrency){
+		if(!concurrency || concurrency == -1 || this.current < concurrency){
 			// Increment the current counter and run the function.
-			context.options.current = (context.options.current || 0) + 1;
+			this.current = this.current + 1;
 			return func();
 		}
 
 		// ..else add to the waiting list.
-		if(!context.waiting) context.waiting = [];
-		context.waiting.push(func);
-	};
-}
+		this.waiting.push(func);
+	}
 
-// release returns a function that executes when an instance of function finishes.
-function release(context){
-	return function(){
-		// Increment the current counter...
-		context.options.current -= 1;
+	// release decrements the current when an instance of function finishes.
+	release(){
+		this.current = Math.max(this.current - 1, 0);
 		// ...execute the first in line from the waiting list.
-		return wait(context)(context.waiting.shift());
-	};
+		return this.wait(this.waiting.shift());
+	}
 }
 
 class Pipeline{
@@ -34,18 +36,10 @@ class Pipeline{
 		@param promiseFunc Function a function that takes an input and returns a promise.
 		@param options Object an object that contains pipe options like concurrency, timeout etc.
 	**/
-	use(promiseFunc, options){
+	use(promiseFunc, _options){
 		if(!this.funcs) this.funcs = [];
-		let context = Object.assign(
-			{ options: { concurrency: -1, timeout: -1 }},
-			{ options }
-		);
-		this.funcs.push(
-			Object.assign({
-				wait: wait(context),
-				release: release(context),
-			}, {promiseFunc})
-		);
+		let options = Object.assign({ concurrency: -1, timeout: -1 }, _options);
+		this.funcs.push(new Pipe(promiseFunc, options));
 	}
 
 	/**

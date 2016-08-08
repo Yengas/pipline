@@ -9,6 +9,7 @@ pipeline.use(wait(1000, 'second'), { concurrency: 1 });
 
 function wait(ms, name){
 	return function(data){
+		console.log(`${name} is called with ${data}.`);
 		return new Promise((resolve) => {
 			setTimeout(() => { 
 				console.log(`${name} resolving ${data}.`);
