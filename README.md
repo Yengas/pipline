@@ -9,28 +9,28 @@ const Pipeline = require('./');
 
 let pipeline = new Pipeline();
 
-pipeline.use(wait(3000, 'first'), { concurrency: 3, timeout: 500 });
-pipeline.use(wait(1000, 'second'), { concurrency: 1 });
+// You can also chain #use methods, since #use returns `this`.
+pipeline.use(waitAndReturn, { concurrency: 3, timeout: 3500 });
+pipeline.use(printAndWait, { concurrency: 1 });
 
 // Create an array containing numbers from 0 to 9, and calls pipeline.start on them.
-[...Array(10).keys()].map((i) => pipeline.start(i).then(console.log));
+for(let i = 0; i < 10; i++){
+	pipeline.start(i)
+		.then((res) => console.log("Result: ", res))
+		.catch((err) => console.log("Error: ", err));
+}
 
-// Returns a function that returns a promise returning function that resolves the given data to it, after a given ms.
-function wait(ms, name){
-	return function(data){
-		console.log(`${name} called with: ${data}`);
-		return new Promise((resolve) => {
-			setTimeout(() => { 
-				console.log(`${name} resolving: ${data}`);
-				resolve(data); 
-			}, ms);
-		});
-	};
+// Returns a promise that resolves after 3 seconds.
+function waitAndReturn(i){
+	console.log(`Wait and return called with: ${i}`);
+	return new Promise((resolve) => setTimeout(() => resolve(i), 3000));
+}
+
+function printAndWait(i){
+	return new Promise((resolve) => {
+		console.log(`PrintAndWait prints ${i}`);
+		setTimeout(() => resolve(i), 1000);
+	});	
 }
 ```
 This example function will take 3 + 10 seconds to complete. The you can notice the first function that takes 3000 ms, processes the given data in batches of 3. 
-
-## Todo
-- Make sure promise func errors doesn't stop the pipeline, and find a good way to pass rejections to the #start.
-- Make sure you are using promises where you can internally.
-- Add timeout implementation.
