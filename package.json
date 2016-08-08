@@ -1,8 +1,9 @@
 {
   "name": "pipline",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Pipline is a promise pipeline that can run concurrent functions with a nice to work with api.",
   "main": "lib/pipline.js",
+  "repository": { "type": "git", "url": "https://github.com/Yengas/pipline" },
   "scripts": {
     "test": "mocha --recursive test"
   },
