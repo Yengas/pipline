@@ -11,7 +11,8 @@
     "pipeline",
     "concurrent",
     "execution",
-    "limit"
+    "limit",
+	"timeout"
   ],
   "author": "Yengas",
   "license": "ISC"
