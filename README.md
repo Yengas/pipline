@@ -33,4 +33,4 @@ function printAndWait(i){
 	});	
 }
 ```
-This example function will take 3 + 10 seconds to complete. The you can notice the first function that takes 3000 ms, processes the given data in batches of 3. 
+This example function will take 3 + 10 seconds to complete. You can notice the first function that takes 3000 ms, processes the given data in batches of 3. 
