@@ -1,3 +1,14 @@
+/**
+	timeout returns a promise that rejects after a given time.
+	@param ms Number time to reject after waiting.
+	@return Promise
+**/
+function timeout(ms){
+	return new Promise((_, reject) => {
+		setTimeout(() => reject(`Timeout ${ms} ms.`), ms);
+	});
+}
+
 class Pipe{
 	constructor(promiseFunc, options){
 		this.options = options;
@@ -50,7 +61,7 @@ class Pipeline{
 		@param resolve Function to call when the pipeline execute finishes.
 		@return Promise
 	**/
-	_execute(index, data, resolve){
+	_execute(index, data, resolve, reject){
 		// Call the resolve function if we're finished with the pipeline.
 		if(index >= this.funcs.length) return resolve(data);
 		// current function.
@@ -59,14 +70,29 @@ class Pipeline{
 		// wait until we can execute this function(e.g. wait for instances of this function to finish.)
 		pipe.wait(() => { 
 			// Call the promise func.
-			pipe.promiseFunc(data)
-				// Release on catch too.
-				.then((data) => { 
-					// Release an instance of this function, so waiting functions can start.
-					pipe.release();
-					// Execute the next pipe in line.
-					return this._execute(index + 1, data, resolve);
-				});
+			let result;
+
+			// Don't trust the pipe function.
+			try{
+				result = pipe.promiseFunc(data);
+			}catch(e){}
+
+			// Reject if the returned value is not a promise.
+			if(!result || result.constructor !== Promise) reject(result);
+
+			// Timeout if a timeout is given. 
+			if(pipe.options.timeout > 0)
+				result = Promise.race([result, timeout(pipe.options.timeout)]);
+
+			result.then((data) => { 
+				// Release an instance of this function, so waiting functions can start.
+				pipe.release();
+				// Execute the next pipe in line.
+				return this._execute(index + 1, data, resolve, reject);
+			}).catch((error) => {
+				pipe.release();	
+				reject(error);
+			});
 		});
 	}
 
@@ -77,7 +103,7 @@ class Pipeline{
 		@return Promise
 	**/
 	start(data){
-		return new Promise(resolve => this._execute(0, data, resolve));
+		return new Promise((resolve, reject) => this._execute(0, data, resolve, reject));
 	}
 }
 
