@@ -1,8 +1,8 @@
 {
-  "name": "pro-pipe",
+  "name": "pipline",
   "version": "0.0.1",
-  "description": "Pro-pipe is a promise pipeline that can run concurrent functions with a nice to work with api.",
-  "main": "index.js",
+  "description": "Pipline is a promise pipeline that can run concurrent functions with a nice to work with api.",
+  "main": "lib/pipline.js",
   "scripts": {
     "test": "mocha --recursive test"
   },

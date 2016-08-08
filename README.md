@@ -1,5 +1,5 @@
-# pro-pipe
-Pro pipe lets you create pipelines using promises. You give this pipeline the promise returning functions you want in an orderly fashion, set their options so they will behave as you like, and then you can send any data to this pipeline, which will be processed with the order and constraints you gave your promise returning functions with.
+# pipline
+Pipline lets you create pipelines using promises. You give this pipeline the promise returning functions you want in an orderly fashion, set their options so they will behave as you like, and then you can send any data to this pipeline, which will be processed with the order and constraints you gave your promise returning functions with.
 
 Best part of this library is that it uses promises in its internal implementation and there is no magic. It just works! And its easy to work with!
 
@@ -18,6 +18,7 @@ pipeline.use(wait(1000, 'second'), { concurrency: 1 });
 // Returns a function that returns a promise returning function that resolves the given data to it, after a given ms.
 function wait(ms, name){
 	return function(data){
+		console.log(`${name} called with: ${data}`);
 		return new Promise((resolve) => {
 			setTimeout(() => { 
 				console.log(`${name} resolving: ${data}`);
